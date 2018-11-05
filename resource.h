@@ -7,21 +7,39 @@ protected:
 	std::string ResourceType;
 	char state;
 	std::string Borrower;
-	std::string date;
+	int BorrowDate;
+	int ReturnDate;
 public:
-	void Borrow(std::string MemberName);
-	void Return();
+	int ShowBorrowDate();
+	int ShowReturnDate();
+	void Borrow(int Date, std::string MemberName);
+	int Return(int Date, std::string MemberName);
 	std::string Name();
 	char ShowState();
+	std::string ShowBorrower();
 };
 
-void resource::Borrow(std::string MemberName) {
-	state = 'B';
-	Borrower = MemberName; 
+int resource::ShowBorrowDate() {
+	return BorrowDate;
 }
 
-void resource::Return() {
+int resource::ShowReturnDate() {
+	return ReturnDate;
+}
+
+void resource::Borrow(int Date, std::string MemberName) {
+	state = 'B';
+	Borrower = MemberName; 
+	BorrowDate = Date;
+	ReturnDate = BorrowDate + 13;
+}
+
+int resource::Return(int Date, std::string MemberName) {
 	state = 'R';
+	if (Date > ShowReturnDate()) {
+		return Date - ShowReturnDate();
+	}
+	return 0;
 }
 
 std::string resource::Name() {
@@ -30,6 +48,10 @@ std::string resource::Name() {
 
 char resource::ShowState() {
 	return state;
+}
+
+std::string resource::ShowBorrower() {
+	return Borrower;
 }
 
 class book :public resource

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <stdio.h>
 #include "resource.h"
 #include "member.h"
 
@@ -15,6 +16,8 @@ class library
 	
 public:
 	library();
+	int ConvertDate(std::string Date);
+	std::string ReverseConvertDate(int ConvertedDate);
 	void AddResource(std::string ResourceName, std::string ResourceType);
 	void AddMember(std::string MemberName, std::string MemberType);
 	int isResource(std::string ResourceName, std::string ResourceType);
@@ -25,24 +28,45 @@ public:
 	int CheckAlreadyBorrow(std::string NemberName, std::string ResourceName);
 	int Borrow(std::string Date, std::string ResourceType, std::string ResourceName,
 				std::string MemberType, std::string MemberName);
-//	int Return(std::string Date, std::string ResourceType, std::string ResourceName,
-//				std::string MemberType, std::string MemberName);
+	int didBorrow(std::string ResourceName);
+	int Return(std::string Date, std::string ResourceType, std::string ResourceName,
+				std::string MemberType, std::string MemberName);
 	int Operation(std::string Date, std::string ResourceType, std::string ResourceName,
 				std::string Operation, std::string MemberType, std::string MemberName);
 	int ShowOp_num();
 	std::string ShowDescription();
-/*	void showBookList() {
-		for (int i = 0; i < TotalBookNumber; i++) {
-			std::cout << BookList.at(i).Name() << std::endl;
-		}
-	}
-*/
 };
 
 library::library() {
 	Op_num = 1;
 	TotalBookNumber = 0;
 	TotalUndergraduateNumber = 0;
+}
+
+int library::ConvertDate(std::string Date) {
+	int year = atoi(Date.substr(0, 2).c_str());
+	int month = atoi(Date.substr(3, 5).c_str());
+	int day = atoi(Date.substr(6, 9).c_str());
+	return year * 360 + month * 30 + day;
+}
+
+std::string library::ReverseConvertDate(int ConvertedDate) {
+	int year = ConvertedDate / 360;
+	std::string _year = std::to_string(year);
+	if (year < 10) {
+		_year = "0" + _year;
+	}
+	int month = ConvertedDate % 360 / 30;
+	std::string _month = std::to_string(month);
+	if (month < 10) {
+		_month = "0" + _month;
+	}
+	int day = ConvertedDate % 30;
+	std::string _day = std::to_string(day);
+	if (day < 10) {
+		_day = "0" + _day;
+	}
+	return _year + "/" + _month + "/" + _day;
 }
 
 void library::AddResource(std::string ResourceName, std::string ResourceType) {
@@ -127,29 +151,51 @@ int library::Borrow(std::string Date, std::string ResourceType, std::string Reso
 		AddMember(MemberName, MemberType);		
 	}
 
-//	undergraduate user = findUndergraduate(MemberName);
-//	book object = findBook(ResourceName);
-
 	if (CheckBorrowlimit(MemberType, MemberName) == 2) {
-		Description = "Exceeds your possible number of borrow. Possible# of borrows: 1";
+		Description = "Exceeds your possible number of borrow. Possible # of borrows: 1";
 		return 2;
 	}
 
 	if (CheckAlreadyBorrow(MemberName, ResourceName) == 4) {
-		Description = "You already borrowed this book at ";
+		Description = "You already borrowed this book at " + Date;
 		return 4;
 	}
 	
 	if (CheckAlreadyBorrow(MemberName, ResourceName) == 5) {
-		Description = "Other member already borrowed this book. This book will be returned at ";
+		Description = "Other member already borrowed this book. This book will be returned at " + ReverseConvertDate(findBook(ResourceName)->ShowReturnDate());
 		return 5;
 	}
 
+	if (ConvertDate(Date) <= findUndergraduate(MemberName)->ShowRestrictedDate()) {
+		Description = "Restricted member until " + ReverseConvertDate(findUndergraduate(MemberName)->ShowRestrictedDate());
+		return 6;
+	}
+
 	findUndergraduate(MemberName)->Borrow(ResourceName);
-	findBook(ResourceName)->Borrow(MemberName);
-	Description = "Success";
+	findBook(ResourceName)->Borrow(ConvertDate(Date), MemberName);
+	Description = "Success.";
 	return 0;
 }
+
+
+int library::Return(std::string Date, std::string ResourceType, std::string ResourceName,
+						std::string MemberType, std::string MemberName) {
+	if (findBook(ResourceName)->ShowBorrower() != MemberName) {
+		Description = "You did not borrow this book.";
+		return 3;
+	}
+	
+	findUndergraduate(MemberName)->Return(ResourceName);
+
+	int RestrictDay;
+	if ((RestrictDay = findBook(ResourceName)->Return(ConvertDate(Date), MemberName)) != 0) {
+		findUndergraduate(MemberName)->restrict(RestrictDay, ConvertDate(Date));
+		Description = "Delayed return. You'll be restricted until " + ReverseConvertDate(findUndergraduate(MemberName)->ShowRestrictedDate());
+		return 7;
+	}
+	return 0;
+}
+
 
 int library::Operation(std::string Date, std::string ResourceType, std::string ResourceName,
 	std::string Operation, std::string MemberType, std::string MemberName) {
@@ -157,8 +203,8 @@ int library::Operation(std::string Date, std::string ResourceType, std::string R
 	if (Operation == "B") {
 		Return_code = Borrow(Date, ResourceType, ResourceName, MemberType, MemberName);
 	}
-//	else if (Operation == "R")
-//		Return_code = Return(Date, ResourceType, ResourceName, MemberType, MemberName);
+	else if (Operation == "R")
+		Return_code = Return(Date, ResourceType, ResourceName, MemberType, MemberName);
 	Op_num++;
 	return Return_code;
 }
@@ -171,8 +217,4 @@ std::string library::ShowDescription() {
 	return Description;
 }
 
-/*int library::Return(std::string Date, std::string ResourceType, std::string ResourceName,
-	std::string MemberType, std::string MemberName) {
 
-}
-*/

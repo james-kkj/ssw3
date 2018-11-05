@@ -23,7 +23,6 @@ int main() {
 		_ResourceName = ResourceInput.substr(ResourceInput.find("\t")+1);
 		_library.AddResource(_ResourceName, _ResourceType);
 	}
-//_library.showBookList();
 
 //get input.dat
 	cout << "Op_#\tReturn_code\tDescription" << endl;
@@ -35,7 +34,7 @@ int main() {
 	}
 	string Input;
 	string Date, ResourceType, ResourceName, Operation, MemberType, MemberName;
-	int Return_code, Op_num;
+	int Return_code = 0, Op_num;
 	getline(InputFile, Input);
 	while (getline(InputFile, Input)) {
 		Date = Input.substr(0, Input.find("\t"));
@@ -49,12 +48,11 @@ int main() {
 		MemberType = Input.substr(0, Input.find("\t"));
 		Input = Input.substr(Input.find("\t") + 1);
 		MemberName = Input;
-		
-		cout << Date << ResourceType << ResourceName << Operation << MemberType << MemberName << endl;
+		//operate
 		Op_num = _library.ShowOp_num();
 		Return_code = _library.Operation(Date, ResourceType, ResourceName,
 						Operation, MemberType, MemberName);
-
+		//print
 		cout << Op_num << "\t" << Return_code << "\t" << _library.ShowDescription() << endl;
 	}
 
