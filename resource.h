@@ -1,26 +1,45 @@
+#include <string>
+
 class resource
 {
-	string ResourceNmae;
-	string ResourceType;
+protected:
+	std::string ResourceName;
+	std::string ResourceType;
 	char state;
+	std::string Borrower;
+	std::string date;
 public:
-	void resource(string name, string type);
-	Borrow();
-	Return();
+	void Borrow(std::string MemberName);
+	void Return();
+	std::string Name();
+	char ShowState();
 };
 
-void resource::resource(string name, string type) {
-	ResourceName = name;
-	ResourceType = type;
-	state = 'R'
-}
-
-void resource::Borrow() {
+void resource::Borrow(std::string MemberName) {
 	state = 'B';
+	Borrower = MemberName; 
 }
 
 void resource::Return() {
 	state = 'R';
 }
 
-class undergraduate :public resource{};
+std::string resource::Name() {
+	return ResourceName;
+}
+
+char resource::ShowState() {
+	return state;
+}
+
+class book :public resource
+{
+public:
+	book(std::string name);
+};
+
+book::book(std::string name) {
+	ResourceName = name;
+	ResourceType = "Book";
+	state = 'R';
+}
