@@ -4,54 +4,22 @@
 class member
 {
 protected:
-	std::string MemberName;
-	std::string MemberType;
-	std::vector<std::string> BorrowList;
-	int BorrowNum;
-	int RestrictedDate;
+	std::string memberName;
+	std::string memberType;
+	std::vector<std::string> borrowList;
+	int borrowNum;
+	int borrowCapacity;
+	int restrictedDate;
 public:
-	void Borrow(std::string ResourceName);
-	void Return(std::string ResourceName);
-	std::string Name();
-	void restrict(int RestrictDay, int Date);
-	int ShowBorrowNum();
-	int ShowRestrictedDate();
-	int isBorrow(std::string ResourceName);
+	void borrow(std::string resourceType, std::string resourceName);
+	void receive(std::string ResourceName);
+	std::string name();
+	void restrict(int restrictDay, int date);
+	int showBorrowNum();
+	int showborrowCapacity();
+	int showRestrictedDate();
+	int isBorrow(std::string resourceName);
 };
-
-void member::Borrow(std::string ResourceName) {
-	BorrowNum++;
-	BorrowList.push_back(ResourceName);
-}
-
-void member::Return(std::string ResourceName) {
-	BorrowNum--;
-	BorrowList.pop_back();
-}
-
-std::string member::Name() {
-	return MemberName;
-}
-
-void member::restrict(int RestrictDay, int Date) {
-	RestrictedDate = Date + RestrictDay;
-}
-
-int member::ShowBorrowNum() {
-	return BorrowNum;
-}
-
-int member::ShowRestrictedDate() {
-	return RestrictedDate;
-}
-
-int member::isBorrow(std::string ResourceName) {
-	for (int i = 0; i < BorrowNum; i++) {
-		if (BorrowList.at(i) == ResourceName)
-			return 1;
-	}
-	return 0;
-}
 
 class undergraduate :public member
 {
@@ -59,11 +27,89 @@ public:
 	undergraduate(std::string name);
 };
 
+class graduate :public member
+{
+public:
+	graduate(std::string name);
+};
+
+class faculty :public member
+{
+public:
+	faculty(std::string name);
+};
+
+faculty::faculty(std::string name) {
+	memberName = name;
+	memberType = "faculty";
+	borrowNum = 0;
+	borrowCapacity = 0;
+	restrictedDate = 0;
+}
+
+graduate::graduate(std::string name) {
+	memberName = name;
+	memberType = "graduate";
+	borrowNum = 0;
+	borrowCapacity = 0;
+	restrictedDate = 0;
+}
+
 undergraduate::undergraduate(std::string name) {
-	MemberName = name;
-	MemberType = "Undergraduate";
-	BorrowNum = 0;
-	RestrictedDate = 0;
+	memberName = name;
+	memberType = "Undergraduate";
+	borrowNum = 0;
+	borrowCapacity = 0;
+	restrictedDate = 0;
+}
+
+std::string member::name() {
+	return memberName;
+}
+
+int member::showBorrowNum() {
+	return borrowNum;
+}
+
+void member::borrow(std::string resourceType, std::string resourceName) {
+	if (resourceType == "Book" || resourceType == "Magazine") {
+		borrowNum++;
+	}
+	else if (resourceType == "E-book") {
+		int capacity = atoi(resourceName.substr(resourceName.find("[") + 1, resourceName.find("]")).c_str());
+		borrowCapacity = borrowCapacity + capacity;
+	}
+	borrowList.push_back(resourceName);
+}
+
+void member::receive(std::string resourceName) {
+	for (int i = 0; i < borrowNum; i++) {
+		if (borrowList.at(i) == resourceName) {
+			borrowList.erase(borrowList.begin() + i);
+			borrowNum--;
+			break;
+		}
+	}
+}
+
+void member::restrict(int restrictDay, int date) {
+	restrictedDate = date + restrictDay;
+}
+
+int member::showborrowCapacity() {
+	return borrowCapacity;
+}
+
+int member::showRestrictedDate() {
+	return restrictedDate;
+}
+
+int member::isBorrow(std::string resourceName) {
+	for (int i = 0; i < borrowNum; i++) {
+		if (borrowList.at(i) == resourceName)
+			return 1;
+	}
+	return 0;
 }
 
 
