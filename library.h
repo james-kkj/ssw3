@@ -689,32 +689,129 @@ int library::s_operation(std::string date, std::string spaceType, std::string sp
 
 int library::borrowStudyRoom(int hour, int studyRoomId, std::string memberType,
 	std::string memberName, std::string numberOfMember, std::string time) {
-
+	//11-이미 같은 종류의 공간을 빌렸는지 확인
+	for (int i = 0; i < 10; i++) {
+		if (studyRoomList[i].name() == memberName) {
+			description = "You already borrowed this kind of space.";
+			return 11;
+		}
+		else continue;
+	}
+	//12-정원을 초과하지 않는지 확인
+	int _numOfMember = atoi(numberOfMember.c_str());
+	if (_numOfMember > 6) {
+		description = "Exceed available number.";
+		return 12;
+	}
+	//13-이미 사용시간을 모두 쓰진 않았는지 확인?, 사용가능시간을 초과하지 않았는지 확인
+	int _time = atoi(time.c_str());
+	if (_time > 3) {
+		description = "Exceed available time.";
+		return 13;
+	}
+	//14-스터디룸이 이미 빌려지지 않았는지 확인
+	if (isEmptyRoom(studyRoomId) != 0) {
+		int returnHour = studyRoomList[studyRoomId].showReturnHour();
+		std::string str = std::to_string(returnHour);
+		description = "There is no remain space. This space is available after " + str + ".";
+		return 14;
+	}
+	//borrow
+	studyRoomList[studyRoomId].borrow(hour, memberName, _time);
 	return 0;
 }
 
 int library::borrowSeat(int hour, int floor, std::string memberType,
 	std::string memberName, std::string numberOfMember, std::string time) {
-
+	//11-이미 같은 종류의 공간을 빌렸는지 확인
+	for (int i = 0; i < FLOOR; i++) {
+		for (int j = 0; j < SEATS_PER_FLOOR; j++) {
+			if (seatList[i][j].name() == memberName) {
+				description = "You already borrowed this kind of space.";
+				return 11;
+			}
+			//else continue;
+		}
+	}
+	//12-정원을 초과하지 않는지 확인
+	int _numOfMember = atoi(numberOfMember.c_str());
+	if (_numOfMember > 1) {
+		description = "Exceed available number.";
+		return 12;
+	}
+	//사용가능시간을 초과하지 않았는지 확인
+	int _time = atoi(time.c_str());
+	if (_time > 3) {
+		description = "Exceed available time.";
+		return 13;
+	}
+	//14-해당 층에 남은 자리가 있는지 확인 및 빌림
+	int returnHour = 24;
+	returnHour = findEmptySeat(floor, returnHour, hour, memberName, memberType, _time);//자리가 있으면 자리를 빌리고 0을, 자리가 없으면 반납예정시간을 리턴
+	if (returnHour != 0) {
+		std::string str = std::to_string(returnHour);
+		description = "There is no remain space. This space is available after " + str + ".";
+		return 14;
+	}
+	//borrow
+	//seatList[floor].borrow(convertedDate, memberName);
 	return 0;
 }
 
 int library::isEmptyRoom(int roomNumber) {
-	return 0;
+	if (studyRoomList[roomNumber].showState() == 'R')
+		return 0;
+	else return 1;
 }
 
 int library::findEmptySeat(int floor, int returnHour, int hour, std::string memberName, std::string memberType, int time) {
-	return 0;
+	for (int i = 0; i < SEATS_PER_FLOOR; i++) {
+		if (seatList[floor][i].showState() == 'R') {
+			seatList[floor][i].borrow(hour, memberName, memberType, time);
+			return 0;
+		}
+		else {
+			if (seatList[floor][i].showReturnHour() < returnHour) {
+				returnHour = seatList[floor][i].showReturnHour();
+			}
+		}
+	}
+	return returnHour;
 }
 
 int library::returnStudyRoom(int hour, int spaceNumber, std::string memberType, std::string memberName) {
-	return 0;
+	if (studyRoomList[spaceNumber].name() != memberName) {
+		description = "You did not borrow this place.";
+		return 10;
+	}
+	else {
+		studyRoomList[spaceNumber]._return();
+		return 0;
+	}
 }
 
 int library::returnSeat(int hour, int spaceNumber, std::string memberType, std::string memberName) {
-	return 0;
+	for (int i = 0; i < SEATS_PER_FLOOR; i++) {
+		if (seatList[spaceNumber][i].name() == memberName) {
+			seatList[spaceNumber][i]._return();
+			return 0;
+		}
+		else continue;
+	}
+	description = "You did not borrow this place.";
+	return 10;
 }
 
 void library::reset() {
+	for (int i = 0; i < 10; i++) {
+		studyRoomList[i]._return();
+	}
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < SEATS_PER_FLOOR; j++) {
+			seatList[i][j]._return();
+		}
+	}
 }
+
+
 
